@@ -192,8 +192,8 @@ function getResponsiblePerson(string $searchValue, string $searchType): ?int
     if ($searchType === 'reference') {
         $response = CRest::call('crm.item.list', [
             'entityTypeId' => CONFIG['LISTINGS_ENTITY_TYPE_ID'],
-            'filter' => ['ufCrm37ReferenceNumber' => $searchValue],
-            'select' => ['ufCrm37ReferenceNumber', 'ufCrm37AgentEmail', 'ufCrm37ListingOwner', 'ufCrm37OwnerId', 'ufCrm37OwnerName'],
+            'filter' => ['ufCrm4ReferenceNumber' => $searchValue],
+            'select' => ['ufCrm4ReferenceNumber', 'ufCrm4AgentEmail', 'ufCrm4ListingOwner', 'ufCrm4OwnerId', 'ufCrm4OwnerName'],
         ]);
 
         if (!empty($response['error'])) {
@@ -210,15 +210,15 @@ function getResponsiblePerson(string $searchValue, string $searchType): ?int
         }
 
         $listing = $response['result']['items'][0];
-        $ownerId = $listing['ufCrm37OwnerId'] ?? null;
+        $ownerId = $listing['ufCrm4OwnerId'] ?? null;
 
         if ($ownerId && is_numeric($ownerId)) {
             return (int)$ownerId;
         }
 
-        $ownerName = !empty($listing['ufCrm37OwnerName'])
-            ? $listing['ufCrm37OwnerName']
-            : ($listing['ufCrm37ListingOwner'] ?? null);
+        $ownerName = !empty($listing['ufCrm4OwnerName'])
+            ? $listing['ufCrm4OwnerName']
+            : ($listing['ufCrm4ListingOwner'] ?? null);
 
         if ($ownerName) {
             $nameParts = explode(' ', trim($ownerName));
@@ -248,7 +248,7 @@ function getResponsiblePerson(string $searchValue, string $searchType): ?int
         }
 
         // Try agent email if listing owner is not found or inactive
-        $agentEmail = $listing['ufCrm37AgentEmail'] ?? null;
+        $agentEmail = $listing['ufCrm4AgentEmail'] ?? null;
         if ($agentEmail) {
             $userId = getUserId([
                 'EMAIL' => $agentEmail,
@@ -277,34 +277,9 @@ function getPropertyPrice($propertyReference)
 {
     $response = CRest::call('crm.item.list', [
         'entityTypeId' => CONFIG['LISTINGS_ENTITY_TYPE_ID'],
-        'filter' => ['ufCrm37ReferenceNumber' => $propertyReference],
-        'select' => ['ufCrm37Price'],
+        'filter' => ['ufCrm4ReferenceNumber' => $propertyReference],
+        'select' => ['ufCrm4Price'],
     ]);
 
-    return $response['result']['items'][0]['ufCrm37Price'] ?? null;
-}
-
-// Gets the listing data (Owner Name and Community) from the temporary SPA
-function getListingData(string $reference): array
-{
-    $response = CRest::call('crm.item.list', [
-        'entityTypeId' => CONFIG['LISTINGS_ENTITY_TYPE_ID'],
-        'filter' => ['ufCrm3ReferenceNumber' => $reference],
-        'select' => ['ufCrm3OwnerName', 'ufCrm3Community', 'ufCrm3Price'],
-    ]);
-
-    if (empty($response['result']['items'])) {
-        return [
-            'owner' => 'N/A',
-            'community' => 'N/A',
-            'price' => null
-        ];
-    }
-
-    $listing = $response['result']['items'][0];
-    return [
-        'owner' => $listing['ufCrm3OwnerName'] ?? 'N/A',
-        'community' => $listing['ufCrm3Community'] ?? 'N/A',
-        'price' => $listing['ufCrm3Price'] ?? null
-    ];
+    return $response['result']['items'][0]['ufCrm4Price'] ?? null;
 }

@@ -78,67 +78,83 @@ class WebhookController
     {
         $this->logger->logWebhook('bayut-whatsapp', $data);
 
-        $reference = $data['listing']['reference'] ?? '';
-        $listingData = !empty($reference) ? getListingData($reference) : ['owner' => 'N/A', 'community' => 'N/A', 'price' => null];
+        $assignedById = !empty($data['listing']['reference']) ? getResponsiblePerson($data['listing']['reference'], 'reference') : CONFIG['DEFAULT_RESPONSIBLE_PERSON_ID'];
+        $title = "Bayut - WhatsApp - " . ($data['listing']['reference'] !== "" ? $data['listing']['reference'] : 'No reference');
 
-        $title = "Bayut - WhatsApp - " . ($reference !== "" ? $reference : 'No reference');
+        $contactId = $this->bitrix->createContact([
+            'NAME' => $data['enquirer']['name'] ?? $title,
+            'PHONE' => [
+                [
+                    'VALUE' => $data['enquirer']['phone_number'],
+                    'VALUE_TYPE' => 'WORK',
+                ]
+            ],
+            'SOURCE_ID' => CONFIG['BAYUT_WHATSAPP'],
+            'ASSIGNED_BY_ID' => $assignedById
+        ]);
 
-        // Map fields using the Temp CRM field IDs
         $fields = [
             'TITLE' => $title,
             'CATEGORY_ID' => CONFIG['SECONDARY_PIPELINE_ID'],
+            'ASSIGNED_BY_ID' => $assignedById,
             'SOURCE_ID' => CONFIG['BAYUT_WHATSAPP'],
-            // Map Owner Name to the specific text field
-            CONFIG['RESPONSIBLE_NAME_FIELD'] => $listingData['owner'],
-            // Client and Property Fields (matching PF Integration turn IDs)
-            'UF_CRM_1741123034066' => $data['enquirer']['name'] ?? 'Unknown', // Name
-            'UF_CRM_1741126758' => $data['enquirer']['phone_number'],        // Phone
-            'UF_CRM_1739873044322' => $data['enquirer']['contact_link'],      // Tracking Link
-            'UF_CRM_1739890146108' => $reference,                             // Reference
-            'UF_CRM_1739945676' => $data['listing']['url'],                   // Property Link
-            'OPPORTUNITY' => $listingData['price'],
-            'COMMENTS' => "Community: " . $listingData['community'] . "\nMessage: " . ($data['message'] ?? ''),
-            'CONTACT_ID' => 0, // Skipping contact creation
+            'UF_CRM_1721198189214' => $data['enquirer']['name'] ?? 'Unknown',
+            'UF_CRM_1736406984' => $data['enquirer']['phone_number'],
+            'UF_CRM_1739873044322' => $data['enquirer']['contact_link'],
+            'UF_CRM_1739890146108' => $data['listing']['reference'],
+            'UF_CRM_1739945676' => $data['listing']['url'],
+            'OPPORTUNITY' => getPropertyPrice($data['listing']['reference']) ?? '',
+            'COMMENTS' => $data['message'],
+            'CONTACT_ID' => $contactId,
         ];
 
         $leadId = $this->bitrix->addLead($fields);
         $this->logger->logFields('bayut-whatsapp', [...$fields, 'ID' => $leadId]);
 
         $this->sendResponse(200, [
-            'message' => 'Processed for temp crm. Deal created with ID: ' . $leadId,
+            'message' => 'Lead data processed successfully and lead created with ID: ' . $leadId,
         ]);
     }
 
-    // Handles dubizzle-whatsapp webhook event (similar logic)
+    // Handles dubizzle-whatsapp webhook event
     public function handleDubizzleWhatsapp(array $data): void
     {
         $this->logger->logWebhook('dubizzle-whatsapp', $data);
 
-        $reference = $data['listing']['reference'] ?? '';
-        $listingData = !empty($reference) ? getListingData($reference) : ['owner' => 'N/A', 'community' => 'N/A', 'price' => null];
+        $assignedById = !empty($data['listing']['reference']) ? getResponsiblePerson($data['listing']['reference'], 'reference') : CONFIG['DEFAULT_RESPONSIBLE_PERSON_ID'];
+        $title = "Dubizzle - WhatsApp - " . ($data['listing']['reference'] !== "" ? $data['listing']['reference'] : 'No reference');
 
-        $title = "Dubizzle - WhatsApp - " . ($reference !== "" ? $reference : 'No reference');
+        $contactId = $this->bitrix->createContact([
+            'NAME' => $data['enquirer']['name'] ?? $title,
+            'PHONE' => [
+                [
+                    'VALUE' => $data['enquirer']['phone_number'],
+                    'VALUE_TYPE' => 'WORK',
+                ]
+            ],
+            'SOURCE_ID' => CONFIG['DUBIZZLE_WHATSAPP'],
+            'ASSIGNED_BY_ID' => $assignedById
+        ]);
 
         $fields = [
             'TITLE' => $title,
             'CATEGORY_ID' => CONFIG['SECONDARY_PIPELINE_ID'],
+            'ASSIGNED_BY_ID' => $assignedById,
             'SOURCE_ID' => CONFIG['DUBIZZLE_WHATSAPP'],
-            CONFIG['RESPONSIBLE_NAME_FIELD'] => $listingData['owner'],
-            'UF_CRM_1741123034066' => $data['enquirer']['name'] ?? 'Unknown',
-            'UF_CRM_1741126758' => $data['enquirer']['phone_number'],
+            'UF_CRM_1721198189214' => $data['enquirer']['name'] ?? 'Unknown',
+            'UF_CRM_1736406984' => $data['enquirer']['phone_number'],
             'UF_CRM_1739873044322' => $data['enquirer']['contact_link'],
-            'UF_CRM_1739890146108' => $reference,
+            'UF_CRM_1739890146108' => $data['listing']['reference'],
             'UF_CRM_1739945676' => $data['listing']['url'],
-            'OPPORTUNITY' => $listingData['price'],
-            'COMMENTS' => "Community: " . $listingData['community'],
-            'CONTACT_ID' => 0,
+            'OPPORTUNITY' => getPropertyPrice($data['listing']['reference']) ?? '',
+            'CONTACT_ID' => $contactId,
         ];
 
         $leadId = $this->bitrix->addLead($fields);
         $this->logger->logFields('dubizzle-whatsapp', [...$fields, 'ID' => $leadId]);
 
         $this->sendResponse(200, [
-            'message' => 'Processed for temp crm. Deal created with ID: ' . $leadId,
+            'message' => 'Lead data processed successfully and lead created with ID: ' . $leadId,
         ]);
     }
 }
