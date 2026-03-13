@@ -272,6 +272,28 @@ function getResponsiblePerson(string $searchValue, string $searchType): ?int
     return CONFIG['DEFAULT_RESPONSIBLE_PERSON_ID'];
 }
 
+function getListingData($propertyReference)
+{
+    if (empty($propertyReference)) {
+        return null;
+    }
+
+    $response = CRest::call('crm.item.list', [
+        'entityTypeId' => CONFIG['LISTINGS_ENTITY_TYPE_ID'],
+        'filter' => ['ufCrm4ReferenceNumber' => $propertyReference],
+        'select' => [
+            'ufCrm4Price',
+            'ufCrm4Bedroom',
+            'ufCrm4Bathroom',
+            'ufCrm4Furnished',
+            'ufCrm4ProjectStatus',
+            'ufCrm4BayutLocation'
+        ],
+    ]);
+
+    return $response['result']['items'][0] ?? null;
+}
+
 // Gets the property price
 function getPropertyPrice($propertyReference)
 {

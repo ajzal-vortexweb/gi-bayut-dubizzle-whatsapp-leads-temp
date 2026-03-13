@@ -81,6 +81,8 @@ class WebhookController
         $assignedById = !empty($data['listing']['reference']) ? getResponsiblePerson($data['listing']['reference'], 'reference') : CONFIG['DEFAULT_RESPONSIBLE_PERSON_ID'];
         $title = "Bayut - WhatsApp - " . ($data['listing']['reference'] !== "" ? $data['listing']['reference'] : 'No reference');
 
+        $listingData = getListingData($data['listing']['reference'] ?? '');
+
         $contactId = $this->bitrix->createContact([
             'NAME' => $data['enquirer']['name'] ?? $title,
             'PHONE' => [
@@ -103,9 +105,15 @@ class WebhookController
             'UF_CRM_1739873044322' => $data['enquirer']['contact_link'],
             'UF_CRM_1739890146108' => $data['listing']['reference'],
             'UF_CRM_1739945676' => $data['listing']['url'],
-            'OPPORTUNITY' => getPropertyPrice($data['listing']['reference']) ?? '',
             'COMMENTS' => $data['message'],
             'CONTACT_ID' => $contactId,
+            'OPPORTUNITY' => $listingData['ufCrm4Price'] ?? '',
+            'UF_CRM_1773209161' => $listingData['ufCrm4Price'] ?? '',
+            'UF_CRM_1773207990' => $listingData['ufCrm4Bedroom'] ?? '',
+            'UF_CRM_1773208021' => $listingData['ufCrm4Bathroom'] ?? '',
+            'UF_CRM_1773208915' => $listingData['ufCrm4Furnished'] ?? '',
+            'UF_CRM_1773208989' => $listingData['ufCrm4ProjectStatus'] ?? '',
+            'UF_CRM_1773209496' => $listingData['ufCrm4BayutLocation'] ?? '',
         ];
 
         $leadId = $this->bitrix->addLead($fields);
