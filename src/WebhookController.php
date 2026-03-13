@@ -114,7 +114,7 @@ class WebhookController
             'UF_CRM_1773208915' => $listingData['ufCrm4Furnished'] ?? '',
             'UF_CRM_1773208989' => $listingData['ufCrm4ProjectStatus'] ?? '',
             'UF_CRM_1773209496' => $listingData['ufCrm4BayutLocation'] ?? '',
-            'UF_CRM_1746601717165' => $listingData['ufCrm4PropertyType'] ?? '',
+            'UF_CRM_1746601717165' => isset($listingData['ufCrm4PropertyType']) ? mapPropertyType($listingData['ufCrm4PropertyType']) : '',
             'UF_CRM_1701770291539' => $listingData['ufCrm4Size'] ?? '',
         ];
 

@@ -272,6 +272,35 @@ function getResponsiblePerson(string $searchValue, string $searchType): ?int
     return CONFIG['DEFAULT_RESPONSIBLE_PERSON_ID'];
 }
 
+function mapPropertyType($code)
+{
+    $mapping = [
+        "AP" => "Apartment",
+        "BW" => "Bungalow",
+        "CD" => "Compound",
+        "DX" => "Duplex",
+        "FF" => "Full floor",
+        "HF" => "Half floor",
+        "PH" => "Penthouse",
+        "TH" => "Townhouse",
+        "VH" => "Villa",
+        "WB" => "Building",
+        "HA" => "Hotel Apartment",
+        "LC" => "Labor camp",
+        "BU" => "Bulk units",
+        "WH" => "Warehouse",
+        "FA" => "Factory",
+        "OF" => "Office",
+        "RE" => "Retail",
+        "LP" => "Plot",
+        "SH" => "Shop",
+        "SR" => "Show Room",
+        "SA" => "Staff Accommodation"
+    ];
+
+    return $mapping[$code] ?? $code;
+}
+
 function getListingData($propertyReference)
 {
     if (empty($propertyReference)) {
@@ -287,7 +316,9 @@ function getListingData($propertyReference)
             'ufCrm4Bathroom',
             'ufCrm4Furnished',
             'ufCrm4ProjectStatus',
-            'ufCrm4BayutLocation'
+            'ufCrm4BayutLocation',
+            'ufCrm4PropertyType',
+            'ufCrm4Size',
         ],
     ]);
 
